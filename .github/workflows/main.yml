@@ -39,7 +39,7 @@ jobs:
        uses: actions/checkout@v2
        with:
         repository: Percona-QA/psmdb-testing
-        ref: ${{ github.event.inputs.tests_ver || 'PR_run'}}
+        ref: ${{ github.event.inputs.tests_ver || 'main'}}
         path: psmdb-testing
      - name: Setup environment with PSMDB ${{ matrix.psmdb }} for PBM PR/branch ${{ github.event.pull_request.title || env.PR_NUMBER || env.PBM_BRANCH }}
        run: |
