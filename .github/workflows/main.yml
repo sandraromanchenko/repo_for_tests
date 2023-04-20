@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      pbm_branch:
+        description: "PBM branch"
+        required: false
+      tests_ver:
+        description: "Tests version"
+        required: false
+      go_ver:
+        description: "Golang version"
+        required: false
+      pr_ver:
+        description: "PR version"
+        required: false
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        psmdb: ["4.2"]
+        test: [logical]
+    env:
+      PBM_BRANCH: ${{ github.event.inputs.pbm_branch || 'main' }}
+      GO_VER: ${{ github.event.inputs.go_ver || 'latest' }}
+      PR_NUMBER: ${{ github.event.inputs.pr_ver }}
+      PR_NUMBER1: ${{ github.event.number }}
+
+    steps:
+     - name: Checkout testing repo for PR ${{ env.PR_NUMBER1 }}
+       uses: actions/checkout@v2
+       with:
+        repository: Percona-QA/psmdb-testing
+        ref: ${{ github.event.inputs.pbm_branch || 'PR_run'}}
+        working-directory: psmdb-testing
+     - name: Setup environment with PSMDB ${{ matrix.psmdb }} and PBM version ${{ github.event.pull_request.title || env.PBM_BRANCH }}
+       run: |
+        cd psmdb-testing/pbm-functional/pytest
+        PSMDB=percona/percona-server-mongodb:${{ matrix.psmdb }} docker-compose build
+        docker-compose up -d
+        working-directory: psmdb-testing/pbm-functional/pytest
+     - name: Test ${{ matrix.test }} backup/restore on PSMDB ${{ matrix.psmdb }} and PBM version ${{ github.event.pull_request.title || env.PBM_BRANCH }}
+       run: |
+        docker-compose run test pytest -s --junitxml=junit.xml -k ${{ matrix.test }}
+        working-directory: psmdb-testing/pbm-functional/pytest
+     - name: Publish Test Report
+       uses: mikepenz/action-junit-report@v3
+       if: success() || failure() 
+       with:
+        report_paths: '**/junit.xml'
