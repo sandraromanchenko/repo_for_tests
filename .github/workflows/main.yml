@@ -27,27 +27,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        psmdb: ["4.2"]
-        test: [logical]
+        psmdb: ["4.2", "4.4", "5.0", "6.0"]
+        test: [logical, physical, incremental]
     env:
       PBM_BRANCH: ${{ github.event.inputs.pbm_branch || 'main' }}
       GO_VER: ${{ github.event.inputs.go_ver || 'latest' }}
-      PR_NUMBER: ${{ github.event.inputs.pr_ver }}
-      PR_NUMBER1: ${{ github.event.number }}
+      PR_NUMBER: ${{ github.event.number|| github.event.inputs.pr_ver }}
 
     steps:
-     - name: Checkout testing repo for PR ${{ env.PR_NUMBER1 }}
+     - name: Checkout testing repo
        uses: actions/checkout@v2
        with:
         repository: Percona-QA/psmdb-testing
         ref: ${{ github.event.inputs.tests_ver || 'PR_run'}}
         path: psmdb-testing
-     - name: Setup environment with PSMDB ${{ matrix.psmdb }} and PBM version ${{ github.event.pull_request.title || env.PBM_BRANCH }}
+     - name: Setup environment with PSMDB ${{ matrix.psmdb }} for PBM PR/branch ${{ github.event.pull_request.title || env.PBM_BRANCH }}
        run: |
         PSMDB=percona/percona-server-mongodb:${{ matrix.psmdb }} docker-compose build
         docker-compose up -d
        working-directory: psmdb-testing/pbm-functional/pytest
-     - name: Test ${{ matrix.test }} backup/restore on PSMDB ${{ matrix.psmdb }} and PBM version ${{ github.event.pull_request.title || env.PBM_BRANCH }}
+     - name: Test ${{ matrix.test }} backup/restore on PSMDB ${{ matrix.psmdb }} for PBM PR/branch ${{ github.event.pull_request.title || env.PBM_BRANCH }}
        run: |
         docker-compose run test pytest -s --junitxml=junit.xml -k ${{ matrix.test }}
        working-directory: psmdb-testing/pbm-functional/pytest
