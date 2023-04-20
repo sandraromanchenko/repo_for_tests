@@ -22,6 +22,7 @@ on:
     paths-ignore:
       - 'e2e-tests/**'
       - 'packaging/**'
+      - 'version/**'
 
 jobs:
   test:
