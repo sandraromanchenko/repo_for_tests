@@ -41,12 +41,12 @@ jobs:
         repository: Percona-QA/psmdb-testing
         ref: ${{ github.event.inputs.tests_ver || 'PR_run'}}
         path: psmdb-testing
-     - name: Setup environment with PSMDB ${{ matrix.psmdb }} for PBM PR/branch ${{ github.event.pull_request.title || env.PBM_BRANCH }}
+     - name: Setup environment with PSMDB ${{ matrix.psmdb }} for PBM PR/branch ${{ github.event.pull_request.title || env.PR_NUMBER || env.PBM_BRANCH }}
        run: |
         PSMDB=percona/percona-server-mongodb:${{ matrix.psmdb }} docker-compose build
         docker-compose up -d
        working-directory: psmdb-testing/pbm-functional/pytest
-     - name: Test ${{ matrix.test }} backup/restore on PSMDB ${{ matrix.psmdb }} for PBM PR/branch ${{ github.event.pull_request.title || env.PBM_BRANCH }}
+     - name: Test ${{ matrix.test }} backup/restore on PSMDB ${{ matrix.psmdb }} for PBM PR/branch ${{ github.event.pull_request.title || env.PR_NUMBER || env.PBM_BRANCH }}
        run: |
         docker-compose run test pytest -s --junitxml=junit.xml -k ${{ matrix.test }}
        working-directory: psmdb-testing/pbm-functional/pytest
