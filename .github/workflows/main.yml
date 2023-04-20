@@ -44,14 +44,13 @@ jobs:
         working-directory: psmdb-testing
      - name: Setup environment with PSMDB ${{ matrix.psmdb }} and PBM version ${{ github.event.pull_request.title || env.PBM_BRANCH }}
        run: |
-        cd psmdb-testing/pbm-functional/pytest
         PSMDB=percona/percona-server-mongodb:${{ matrix.psmdb }} docker-compose build
         docker-compose up -d
-        working-directory: psmdb-testing/pbm-functional/pytest
+       working-directory: psmdb-testing/pbm-functional/pytest
      - name: Test ${{ matrix.test }} backup/restore on PSMDB ${{ matrix.psmdb }} and PBM version ${{ github.event.pull_request.title || env.PBM_BRANCH }}
        run: |
         docker-compose run test pytest -s --junitxml=junit.xml -k ${{ matrix.test }}
-        working-directory: psmdb-testing/pbm-functional/pytest
+       working-directory: psmdb-testing/pbm-functional/pytest
      - name: Publish Test Report
        uses: mikepenz/action-junit-report@v3
        if: success() || failure() 
